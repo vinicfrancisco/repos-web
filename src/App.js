@@ -1,26 +1,51 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+
+import api from './services/api';
 
 import "./styles.css";
 
 function App() {
+  const [repos, setRepos] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const response = await api.get('/repositories');
+
+        setRepos(response.data);
+      } catch (error) {
+        alert('Falha ao carregar repositórios')
+      }
+    }
+
+    loadData();
+  }, []);
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post('/repositories', {
+      title: 'Repositório',
+      url: 'https://github.com/vinicfrancisco/repos-web',
+      techs: ['React', 'ReactJS', 'React-Native', 'NodeJS'],
+    });
+
+    setRepos([...repos, response.data]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    await api.delete(`/repositories/${id}`);
+
+    setRepos(repos.filter(repo => repo.id !== id));
   }
 
   return (
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+        {repos.map((repo) => (
+          <li key={String(repo.id)}>
+            {repo.title}
+            <button onClick={() => handleRemoveRepository(repo.id)}>Remover</button>
+          </li>
+        ))}
       </ul>
 
       <button onClick={handleAddRepository}>Adicionar</button>
